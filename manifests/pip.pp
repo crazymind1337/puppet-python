@@ -48,27 +48,27 @@
 #   }
 #
 define python::pip (
-  String $pkgname                                            = $name,
-  Variant[Enum[present, absent, latest], String[1]] $ensure  = present,
-  Variant[Enum['system'], Stdlib::Absolutepath] $virtualenv  = 'system',
-  String[1] $pip_provider                                    = 'pip',
-  Variant[Boolean, String] $url                              = false,
-  String[1] $owner                                           = 'root',
-  $group                                                     = getvar('python::params::group'),
-  $umask                                                     = undef,
-  $index                                                     = false,
-  Optional[Stdlib::HTTPUrl] $proxy                           = undef,
-  $egg                                                       = false,
-  Boolean $editable                                          = false,
-  $environment                                               = [],
-  $extras                                                    = [],
-  String $install_args                                       = '',
-  String $uninstall_args                                     = '',
-  Numeric $timeout                                           = 1800,
-  String[1] $log_dir                                         = '/tmp',
-  Array[String] $path                                        = ['/usr/local/bin','/usr/bin','/bin', '/usr/sbin'],
-  String[1] $exec_provider                                   = 'shell',
-){
+  String                                            $pkgname        = $title,
+  Variant[Enum[present, absent, latest], String[1]] $ensure         = present,
+  Variant[Enum['system'], Stdlib::Absolutepath]     $virtualenv     = 'system',
+  String[1]                                         $pip_provider   = 'pip',
+  Variant[Boolean, String]                          $url            = false,
+  String[1]                                         $owner          = 'root',
+                                                    $group          = getvar('python::params::group'),
+                                                    $umask          = undef,
+                                                    $index          = false,
+  Optional[Stdlib::HTTPUrl]                         $proxy          = undef,
+                                                    $egg            = false,
+  Boolean                                           $editable       = false,
+                                                    $environment    = [],
+                                                    $extras         = [],
+  String                                            $install_args   = '',
+  String                                            $uninstall_args = '',
+  Numeric                                           $timeout        = 1800,
+  String[1]                                         $log_dir        = '/tmp',
+  Array[String]                                     $path           = [ '/usr/local/bin', '/usr/bin', '/bin', '/usr/sbin', ],
+  String[1]                                         $exec_provider  = 'shell',
+) {
   $python_provider = getparam(Class['python'], 'provider')
   $python_version  = getparam(Class['python'], 'version')
 
@@ -111,9 +111,9 @@ define python::pip (
   }
 
   $pypi_index = $index ? {
-      false   => '',
-      default => "--index-url=${index}",
-    }
+    false   => '',
+    default => "--index-url=${index}",
+  }
 
   $proxy_flag = $proxy ? {
     undef    => '',
@@ -122,8 +122,7 @@ define python::pip (
 
   if $editable == true {
     $install_editable = ' -e '
-  }
-  else {
+  } else {
     $install_editable = ''
   }
 
@@ -137,15 +136,15 @@ define python::pip (
   }
 
   if $pkgname =~ /==/ {
-    $parts = split($pkgname, '==')
+    $parts        = split($pkgname, '==')
     $real_pkgname = $parts[0]
-    $_ensure = $ensure ? {
+    $_ensure      = $ensure ? {
       'absent' => 'absent',
       default => $parts[1],
     }
   } else {
     $real_pkgname = $pkgname
-    $_ensure = $ensure
+    $_ensure      = $ensure
   }
 
   # Check if searching by explicit version.
@@ -172,16 +171,16 @@ define python::pip (
     default             => "'${url}#egg=${egg_name}'",
   }
 
-  $pip_install = "${pip_env} --log ${log}/pip.log install"
+  $pip_install     = "${pip_env} --log ${log}/pip.log install"
   $pip_common_args = "${pypi_index} ${proxy_flag} ${install_args} ${install_editable} ${source}"
 
   # Explicit version out of VCS when PIP supported URL is provided
   if $source =~ /^'(git\+|hg\+|bzr\+|svn\+)(http|https|ssh|svn|sftp|ftp|lp|git)(:\/\/).+'$/ {
     if $_ensure != present and $_ensure != latest {
-      $command = "${pip_install} ${install_args} ${pip_common_args}@${_ensure}#egg=${egg_name}"
+      $command        = "${pip_install} ${install_args} ${pip_common_args}@${_ensure}#egg=${egg_name}"
       $unless_command = "${pip_env} list | grep -i -e '${grep_regex}'"
     } else {
-      $command = "${pip_install} ${install_args} ${pip_common_args}"
+      $command        = "${pip_install} ${install_args} ${pip_common_args}"
       $unless_command = "${pip_env} list | grep -i -e '${grep_regex}'"
     }
   } else {
@@ -189,13 +188,13 @@ define python::pip (
       /^((19|20)[0-9][0-9]-(0[1-9]|1[1-2])-([0-2][1-9]|3[0-1])|[0-9]+\.\w+\+?\w*(\.\w+)*)$/: {
         # Version formats as per http://guide.python-distribute.org/specification.html#standard-versioning-schemes
         # Explicit version.
-        $command = "${pip_install} ${install_args} ${pip_common_args}==${_ensure}"
+        $command        = "${pip_install} ${install_args} ${pip_common_args}==${_ensure}"
         $unless_command = "${pip_env} list | grep -i -e '${grep_regex}'"
       }
 
       'present': {
         # Whatever version is available.
-        $command = "${pip_install} ${pip_common_args}"
+        $command        = "${pip_install} ${pip_common_args}"
         $unless_command = "${pip_env} list | grep -i -e '${grep_regex}'"
       }
 
@@ -243,5 +242,4 @@ define python::pip (
     path        => $_path,
     provider    => $exec_provider,
   }
-
 }

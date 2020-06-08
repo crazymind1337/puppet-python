@@ -21,16 +21,16 @@
 #     group        => 'apps',
 #   }
 #
-define python::pyvenv (
-  $ensure           = present,
-  $version          = 'system',
-  $systempkgs       = false,
-  $venv_dir         = $name,
-  $owner            = 'root',
-  $group            = 'root',
-  $mode             = '0755',
-  $path             = [ '/bin', '/usr/bin', '/usr/sbin', '/usr/local/bin' ],
-  $environment      = [],
+define python::pyvenv(
+  $ensure      = present,
+  $version     = 'system',
+  $systempkgs  = false,
+  $venv_dir    = $name,
+  $owner       = 'root',
+  $group       = 'root',
+  $mode        = '0755',
+  $path        = [ '/bin', '/usr/bin', '/usr/sbin', '/usr/local/bin' ],
+  $environment = [],
 ) {
   include python
 
@@ -40,12 +40,13 @@ define python::pyvenv (
       default  => $version,
     }
 
-    $python_version_parts = split($python_version, '[.]')
+    $python_version_parts      = split($python_version, '[.]')
     $normalized_python_version = sprintf('%s.%s', $python_version_parts[0], $python_version_parts[1])
 
     # Debian splits the venv module into a seperate package
-    if ( $facts['os']['family'] == 'Debian'){
-      $python3_venv_package="python${normalized_python_version}-venv"
+    if ($facts['os']['family'] == 'Debian') {
+      $python3_venv_package = "python${normalized_python_version}-venv"
+
       case $facts['os']['distro']['codename'] {
         'xenial','bionic','cosmic','disco',
         'jessie','stretch','buster': {

@@ -34,26 +34,26 @@
 #  }
 #
 define python::gunicorn (
-  Stdlib::Absolutepath $dir,
-  Enum['present', 'absent'] $ensure                                = present,
-  $config_dir                                                      = '/etc/gunicorn.d',
-  $manage_config_dir                                               = false,
-  $virtualenv                                                      = false,
-  Enum['wsgi', 'django'] $mode                                     = 'wsgi',
-  $bind                                                            = false,
-  $environment                                                     = false,
-  $owner                                                           = 'www-data',
-  $group                                                           = 'www-data',
-  $appmodule                                                       = 'app:app',
-  $osenv                                                           = false,
-  $timeout                                                         = 30,
-  $workers                                                         = false,
-  $access_log_format                                               = false,
-  $accesslog                                                       = false,
-  $errorlog                                                        = false,
-  Enum['debug', 'info', 'warning', 'error', 'critical'] $log_level = 'error',
-  $template                                                        = 'python/gunicorn.erb',
-  $args                                                            = [],
+  Stdlib::Absolutepath                                  $dir,
+  Enum['present', 'absent']                             $ensure            = present,
+                                                        $config_dir        = '/etc/gunicorn.d',
+                                                        $manage_config_dir = false,
+                                                        $virtualenv        = false,
+  Enum['wsgi', 'django']                                $mode              = 'wsgi',
+                                                        $bind              = false,
+                                                        $environment       = false,
+                                                        $owner             = 'www-data',
+                                                        $group             = 'www-data',
+                                                        $appmodule         = 'app:app',
+                                                        $osenv             = false,
+                                                        $timeout           = 30,
+                                                        $workers           = false,
+                                                        $access_log_format = false,
+                                                        $accesslog         = false,
+                                                        $errorlog          = false,
+  Enum['debug', 'info', 'warning', 'error', 'critical'] $log_level         = 'error',
+                                                        $template          = 'python/gunicorn.erb',
+                                                        $args              = [],
 ) {
   if $manage_config_dir {
     file { $config_dir:
@@ -62,6 +62,7 @@ define python::gunicorn (
       owner  => 'root',
       group  => 'root',
     }
+
     file { "${config_dir}/${name}":
       ensure  => $ensure,
       mode    => '0644',
@@ -79,5 +80,4 @@ define python::gunicorn (
       content => template($template),
     }
   }
-
 }

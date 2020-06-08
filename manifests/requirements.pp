@@ -26,23 +26,22 @@
 #   }
 #
 define python::requirements (
-  $requirements                       = $name,
-  $virtualenv                         = 'system',
-  Enum['pip', 'pip3'] $pip_provider   = 'pip',
-  $owner                              = 'root',
-  $group                              = 'root',
-  Optional[Stdlib::HTTPUrl] $proxy    = undef,
-  $src                                = false,
-  $environment                        = [],
-  $forceupdate                        = false,
-  $cwd                                = undef,
-  $extra_pip_args                     = '',
-  $manage_requirements                = true,
-  $fix_requirements_owner             = true,
-  $log_dir                            = '/tmp',
-  $timeout                            = 1800,
+                            $requirements           = $title,
+                            $virtualenv             = 'system',
+  Enum['pip', 'pip3']       $pip_provider           = 'pip',
+                            $owner                  = 'root',
+                            $group                  = 'root',
+  Optional[Stdlib::HTTPUrl] $proxy                  = undef,
+                            $src                    = false,
+                            $environment            = [],
+                            $forceupdate            = false,
+                            $cwd                    = undef,
+                            $extra_pip_args         = '',
+                            $manage_requirements    = true,
+                            $fix_requirements_owner = true,
+                            $log_dir                = '/tmp',
+                            $timeout                = 1800,
 ) {
-
   include python
 
   if $virtualenv == 'system' and ($owner != 'root' or $group != 'root') {
@@ -79,7 +78,7 @@ define python::requirements (
 
   # This will ensure multiple python::virtualenv definitions can share the
   # the same requirements file.
-  if !defined(File[$requirements]) and $manage_requirements == true {
+  if ! defined(File[$requirements]) and $manage_requirements {
     file { $requirements:
       ensure  => present,
       mode    => '0644',
@@ -89,6 +88,7 @@ define python::requirements (
       replace => false,
       content => '# Puppet will install and/or update pip packages listed here',
     }
+
     $local_subscribe = File[$requirements]
   } else {
     $local_subscribe = undef

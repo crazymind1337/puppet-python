@@ -4,7 +4,9 @@
 # @example
 #  include python::config
 #
-class python::config {
+class python::config(
+) {
+  assert_private()
 
   Class['python::install'] -> Python::Pip <| |>
   Class['python::install'] -> Python::Requirements <| |>
@@ -27,5 +29,4 @@ class python::config {
       }
     }
   }
-
 }
