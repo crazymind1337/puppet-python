@@ -22,20 +22,9 @@ class python::install {
     'Gentoo' => undef,
   }
 
-  $pip_ensure = $python::pip ? {
-    true    => 'present',
-    false   => 'absent',
-    default => $python::pip,
-  }
-
-  $venv_ensure = $python::virtualenv ? {
-    true    => 'present',
-    false   => 'absent',
-    default => $python::virtualenv,
-  }
-
-  if $venv_ensure == 'present' {
+  if $python::virtualenv == 'present' {
     $dev_ensure = 'present'
+
     unless $python::dev {
       # Error: python2-devel is needed by (installed) python-virtualenv-15.1.0-2.el7.noarch
       # Python dev is required for virtual environment, but python environment is not required for python dev.
@@ -58,8 +47,16 @@ class python::install {
 
   if $python::manage_virtualenv_package {
     package { 'virtualenv':
-      ensure  => $venv_ensure,
+      ensure  => $python::virtualenv,
       name    => "${python}-virtualenv",
+      require => Package['python'],
+    }
+  }
+
+  if $python::manage_venv_package {
+    package { 'python-venv':
+      ensure  => $python::venv,
+      name    => "${python}-venv",
       require => Package['python'],
     }
   }
@@ -68,7 +65,7 @@ class python::install {
     'pip': {
       if $python::manage_pip_package {
         package { 'pip':
-          ensure  => $pip_ensure,
+          ensure  => $python::pip,
           require => Package['python'],
         }
       }
@@ -80,10 +77,10 @@ class python::install {
         }
       }
 
-      # Respect the $pip_ensure setting
-      unless $pip_ensure == 'absent' {
+      # Respect the $python::pip setting
+      unless $python::pip == 'absent' {
         # Install pip without pip, see https://pip.pypa.io/en/stable/installing/.
-        include 'python::pip::bootstrap'
+        include python::pip::bootstrap
 
         Exec['bootstrap pip'] -> File['pip-python'] -> Package <| provider == pip |>
 
@@ -126,20 +123,20 @@ class python::install {
 
         Package['scl-utils'] -> Package["${python}-scldevel"]
 
-        if $pip_ensure != 'absent' {
+        if $python::pip != 'absent' {
           Package['scl-utils'] -> Exec['python-scl-pip-install']
         }
       }
 
       # This gets installed as a dependency anyway
       # package { "${python::version}-python-virtualenv":
-      #   ensure  => $venv_ensure,
+      #   ensure  => $python::virtualenv,
       #   require => Package['scl-utils'],
       # }
       package { "${python}-scldevel":
         ensure => $dev_ensure,
       }
-      if $pip_ensure != 'absent' {
+      if $python::pip != 'absent' {
         exec { 'python-scl-pip-install':
           command => "${python::exec_prefix}easy_install pip",
           path    => ['/usr/bin', '/bin'],
@@ -172,7 +169,7 @@ class python::install {
       }
 
       package { "${python}-python-pip":
-        ensure => $pip_ensure,
+        ensure => $python::pip,
         tag    => 'python-pip-package',
       }
 
@@ -211,7 +208,7 @@ class python::install {
           } else {
             if $python::manage_pip_package {
               package { 'python-pip':
-                ensure   => $pip_ensure,
+                ensure   => $python::pip,
                 require  => Package['python'],
                 provider => 'yum',
               }
@@ -229,7 +226,7 @@ class python::install {
         default: {
           if $python::manage_pip_package {
             package { 'pip':
-              ensure  => $pip_ensure,
+              ensure  => $python::pip,
               require => Package['python'],
             }
           }
@@ -245,14 +242,14 @@ class python::install {
 
       case $facts['os']['family'] {
         'RedHat': {
-          if $pip_ensure != 'absent' {
+          if $python::pip != 'absent' {
             if $python::use_epel == true {
               include 'epel'
               if $python::manage_pip_package { Class['epel'] -> Package['pip'] }
               if $python::manage_python_package { Class['epel'] -> Package['python'] }
             }
           }
-          if ($venv_ensure != 'absent') and ($facts['os']['release']['full'] =~ /^6/) {
+          if ($python::virtualenv != 'absent') and ($facts['os']['release']['full'] =~ /^6/) {
             if $python::use_epel == true {
               include 'epel'
               Class['epel'] -> Package['virtualenv']
