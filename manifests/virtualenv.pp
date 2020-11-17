@@ -52,8 +52,9 @@ define python::virtualenv (
   $virtualenv      = undef,
 ) {
   include python
+
   $python_provider = getparam(Class['python'], 'provider')
-  $anaconda_path = getparam(Class['python'], 'anaconda_install_path')
+  $anaconda_path   = getparam(Class['python'], 'anaconda_install_path')
 
   if $ensure == 'present' {
     $python = $version ? {
@@ -86,17 +87,18 @@ define python::virtualenv (
       }
     }
 
-    # Virtualenv versions prior to 1.7 do not support the
-    # --system-site-packages flag, default off for prior versions
-    # Prior to version 1.7 the default was equal to --system-site-packages
-    # and the flag --no-site-packages had to be passed to do the opposite
+    ## Virtualenv versions prior to 1.7 do not support the
+    ## --system-site-packages flag, default off for prior versions
+    ## Prior to version 1.7 the default was equal to --system-site-packages
+    ## and the flag --no-site-packages had to be passed to do the opposite
     $_virtualenv_version = getvar('virtualenv_version') ? {
       /.*/ => getvar('virtualenv_version'),
       default => '',
     }
-    if (( versioncmp($_virtualenv_version,'1.7') > 0 ) and ( $systempkgs == true )) {
+
+    if versioncmp($_virtualenv_version,'1.7') > 0 and $systempkgs == true {
       $system_pkgs_flag = '--system-site-packages'
-    } elsif (( versioncmp($_virtualenv_version,'1.7') < 0 ) and ( $systempkgs == false )) {
+    } elsif versioncmp($_virtualenv_version,'1.7') < 0 and $systempkgs == false {
       $system_pkgs_flag = '--no-site-packages'
     } else {
       $system_pkgs_flag = $systempkgs ? {
@@ -115,12 +117,12 @@ define python::virtualenv (
       default => "-i ${index}",
     }
 
-    # Python 2.6 and older does not support setuptools/distribute > 0.8 which
-    # is required for pip wheel support, pip therefor requires --no-use-wheel flag
-    # if the # pip version is more recent than 1.4.1 but using an old python or
-    # setuputils/distribute version
-    # To check for this we test for wheel parameter using help and then using
-    # version, this makes sure we only use wheels if they are supported
+    ## Python 2.6 and older does not support setuptools/distribute > 0.8 which
+    ## is required for pip wheel support, pip therefor requires --no-use-wheel flag
+    ## if the # pip version is more recent than 1.4.1 but using an old python or
+    ## setuputils/distribute version
+    ## To check for this we test for wheel parameter using help and then using
+    ## version, this makes sure we only use wheels if they are supported
 
     if $ensure_venv_dir {
       file { $venv_dir:
@@ -132,9 +134,8 @@ define python::virtualenv (
     }
 
     $virtualenv_cmd = "${python::exec_prefix}${used_virtualenv}"
-
-    $pip_cmd   = "${python::exec_prefix}${venv_dir}/bin/pip"
-    $pip_flags = "${pypi_index} ${proxy_flag} ${pip_args}"
+    $pip_cmd        = "${python::exec_prefix}${venv_dir}/bin/pip"
+    $pip_flags      = "${pypi_index} ${proxy_flag} ${pip_args}"
 
     exec { "python_virtualenv_${venv_dir}":
       command     => "${virtualenv_cmd} ${system_pkgs_flag} -p ${python} ${venv_dir} && ${pip_cmd} --log ${venv_dir}/pip.log install ${pip_flags} --upgrade pip && ${pip_cmd} install ${pip_flags} --upgrade ${distribute_pkg}",

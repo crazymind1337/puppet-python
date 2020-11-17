@@ -76,8 +76,8 @@ define python::requirements (
     default => "--src=${src}",
   }
 
-  # This will ensure multiple python::virtualenv definitions can share the
-  # the same requirements file.
+  ## This will ensure multiple python::virtualenv definitions can share the
+  ## the same requirements file.
   if !defined(File[$requirements]) and $manage_requirements == true {
     file { $requirements:
       ensure  => file,
@@ -88,6 +88,7 @@ define python::requirements (
       replace => false,
       content => '# Puppet will install and/or update pip packages listed here',
     }
+
     $local_subscribe = File[$requirements]
   } else {
     $local_subscribe = undef

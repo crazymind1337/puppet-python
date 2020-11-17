@@ -36,9 +36,10 @@ class python::install {
 
   if $venv_ensure == 'present' {
     $dev_ensure = 'present'
+
     unless $python::dev {
-      # Error: python2-devel is needed by (installed) python-virtualenv-15.1.0-2.el7.noarch
-      # Python dev is required for virtual environment, but python environment is not required for python dev.
+      ## Error: python2-devel is needed by (installed) python-virtualenv-15.1.0-2.el7.noarch
+      ## Python dev is required for virtual environment, but python environment is not required for python dev.
       notify { 'Python virtual environment is dependent on python dev': }
     }
   } else {
@@ -80,10 +81,10 @@ class python::install {
         }
       }
 
-      # Respect the $pip_ensure setting
+      ## Respect the $pip_ensure setting
       unless $pip_ensure == 'absent' {
-        # Install pip without pip, see https://pip.pypa.io/en/stable/installing/.
-        include 'python::pip::bootstrap'
+        ## Install pip without pip, see https://pip.pypa.io/en/stable/installing/.
+        include python::pip::bootstrap
 
         Exec['bootstrap pip'] -> File['pip-python'] -> Package <| provider == pip |>
 
@@ -91,6 +92,7 @@ class python::install {
           name     => 'pip',
           provider => 'pip',
         }
+
         if $pythondev {
           Package <| title == 'virtualenv' |> {
             name     => 'virtualenv',
@@ -106,9 +108,9 @@ class python::install {
       }
     }
     'scl': {
-      # SCL is only valid in the RedHat family. If RHEL, package must be
-      # enabled using the subscription manager outside of puppet. If CentOS,
-      # the centos-release-SCL will install the repository.
+      ## SCL is only valid in the RedHat family. If RHEL, package must be
+      ## enabled using the subscription manager outside of puppet. If CentOS,
+      ## the centos-release-SCL will install the repository.
       if $python::manage_scl {
         $install_scl_repo_package = $facts['os']['name'] ? {
           'CentOS' => 'present',
@@ -119,6 +121,7 @@ class python::install {
           ensure => $install_scl_repo_package,
           before => Package['scl-utils'],
         }
+
         package { 'scl-utils':
           ensure => 'present',
           before => Package['python'],
@@ -131,14 +134,10 @@ class python::install {
         }
       }
 
-      # This gets installed as a dependency anyway
-      # package { "${python::version}-python-virtualenv":
-      #   ensure  => $venv_ensure,
-      #   require => Package['scl-utils'],
-      # }
       package { "${python}-scldevel":
         ensure => $dev_ensure,
       }
+
       if $pip_ensure != 'absent' {
         exec { 'python-scl-pip-install':
           command => "${python::exec_prefix}easy_install pip",
@@ -148,9 +147,10 @@ class python::install {
       }
     }
     'rhscl': {
-      # rhscl is RedHat SCLs from softwarecollections.org
+      ## rhscl is RedHat SCLs from softwarecollections.org
       if $python::rhscl_use_public_repository {
         $scl_package = "rhscl-${python::version}-epel-${facts['os']['release']['major']}-${facts['os']['architecture']}"
+
         package { $scl_package:
           source   => "https://www.softwarecollections.org/en/scls/rhscl/${python::version}/epel-${facts['os']['release']['major']}-${facts['os']['architecture']}/download/${scl_package}.noarch.rpm",
           provider => 'rpm',
@@ -181,8 +181,7 @@ class python::install {
         -> Package <| tag == 'python-scl-package' |>
       }
 
-      Package <| tag == 'python-scl-package' |>
-      -> Package <| tag == 'python-pip-package' |>
+      Package <| tag == 'python-scl-package' |> -> Package <| tag == 'python-pip-package' |>
     }
     'anaconda': {
       $installer_path = '/var/tmp/anaconda_installer.sh'
@@ -217,6 +216,7 @@ class python::install {
               }
             }
           }
+
           if $pythondev {
             package { 'python-dev':
               ensure   => $dev_ensure,
@@ -233,6 +233,7 @@ class python::install {
               require => Package['python'],
             }
           }
+
           if $pythondev {
             package { 'python-dev':
               ensure => $dev_ensure,
@@ -247,14 +248,22 @@ class python::install {
         'RedHat': {
           if $pip_ensure != 'absent' {
             if $python::use_epel == true {
-              include 'epel'
-              if $python::manage_pip_package { Class['epel'] -> Package['pip'] }
-              if $python::manage_python_package { Class['epel'] -> Package['python'] }
+              include epel
+
+              if $python::manage_pip_package {
+                Class['epel'] -> Package['pip']
+              }
+
+              if $python::manage_python_package {
+                Class['epel'] -> Package['python']
+              }
             }
           }
+
           if ($venv_ensure != 'absent') and ($facts['os']['release']['full'] =~ /^6/) {
             if $python::use_epel == true {
-              include 'epel'
+              include epel
+
               Class['epel'] -> Package['virtualenv']
             }
           }
@@ -278,19 +287,19 @@ class python::install {
 
       if String($python::version) =~ /^python3/ {
         $pip_category = undef
-        $pip_package = "${python}-pip"
+        $pip_package  = "${python}-pip"
         $pip_provider = $python.regsubst(/^.*python3\.?/,'pip3.').regsubst(/\.$/,'')
       } elsif ($facts['os']['family'] == 'RedHat') and (versioncmp($facts['os']['release']['major'], '7') >= 0) {
         $pip_category = undef
-        $pip_package = 'python2-pip'
+        $pip_package  = 'python2-pip'
         $pip_provider = pip2
       } elsif $facts['os']['family'] == 'Gentoo' {
         $pip_category = 'dev-python'
-        $pip_package = 'pip'
+        $pip_package  = 'pip'
         $pip_provider = 'pip'
       } else {
         $pip_category = undef
-        $pip_package = 'python-pip'
+        $pip_package  = 'python-pip'
         $pip_provider = 'pip'
       }
 

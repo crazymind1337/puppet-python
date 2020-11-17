@@ -62,6 +62,7 @@ define python::gunicorn (
       owner  => 'root',
       group  => 'root',
     }
+
     file { "${config_dir}/${name}":
       ensure  => $ensure,
       mode    => '0644',

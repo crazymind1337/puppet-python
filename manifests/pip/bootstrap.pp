@@ -1,4 +1,3 @@
-#
 # @summary allow to bootstrap pip when python is managed from other module
 #
 # @param version should be pip or pip3
@@ -9,6 +8,7 @@
 #   class { 'python::pip::bootstrap':
 #     version => 'pip',
 #   }
+#
 class python::pip::bootstrap (
   Enum['pip', 'pip3']       $version       = 'pip',
   Variant[Boolean, String]  $manage_python = false,
@@ -40,7 +40,8 @@ class python::pip::bootstrap (
         require     => Package['python3'],
         provider    => $exec_provider,
       }
-      # puppet is opinionated about the pip command name
+
+      ## puppet is opinionated about the pip command name
       file { 'pip3-python':
         ensure  => link,
         path    => '/usr/bin/pip3',
@@ -56,7 +57,8 @@ class python::pip::bootstrap (
         require     => Package['python'],
         provider    => $exec_provider,
       }
-      # puppet is opinionated about the pip command name
+
+      ## puppet is opinionated about the pip command name
       file { 'pip-python':
         ensure  => link,
         path    => '/usr/bin/pip',

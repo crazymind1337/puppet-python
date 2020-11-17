@@ -66,24 +66,18 @@ class python (
     default => '',
   }
 
-  # Module compatibility check
-  $compatible = ['Debian', 'RedHat', 'Suse', 'Gentoo', 'AIX']
-  if ! ($facts['os']['family'] in $compatible) {
-    fail("Module is not compatible with ${facts['os']['name']}")
-  }
-
   contain python::install
   contain python::config
 
   Class['python::install']
   -> Class['python::config']
 
-  # Set default umask.
+  ## Set default umask.
   if $umask != undef {
     Exec { umask => $umask }
   }
 
-  # Allow hiera configuration of python resources
+  ## Allow hiera configuration of python resources
   create_resources('python::pip', $python_pips)
   create_resources('python::pyvenv', $python_pyvenvs)
   create_resources('python::virtualenv', $python_virtualenvs)
