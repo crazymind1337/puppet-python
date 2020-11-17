@@ -22,15 +22,15 @@
 #   }
 #
 define python::pyvenv (
-  $ensure           = present,
-  $version          = 'system',
-  $systempkgs       = false,
-  $venv_dir         = $name,
-  $owner            = 'root',
-  $group            = 'root',
-  $mode             = '0755',
-  $path             = ['/bin', '/usr/bin', '/usr/sbin', '/usr/local/bin'],
-  $environment      = [],
+  $ensure      = present,
+  $version     = 'system',
+  $systempkgs  = false,
+  $venv_dir    = $name,
+  $owner       = 'root',
+  $group       = 'root',
+  $mode        = '0755',
+  $path        = ['/bin', '/usr/bin', '/usr/sbin', '/usr/local/bin'],
+  $environment = [],
 ) {
   include python
 

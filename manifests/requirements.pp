@@ -26,21 +26,21 @@
 #   }
 #
 define python::requirements (
-  $requirements                       = $name,
-  $virtualenv                         = 'system',
-  Enum['pip', 'pip3'] $pip_provider   = 'pip',
-  $owner                              = 'root',
-  $group                              = 'root',
-  Optional[Stdlib::HTTPUrl] $proxy    = undef,
-  $src                                = false,
-  $environment                        = [],
-  $forceupdate                        = false,
-  $cwd                                = undef,
-  $extra_pip_args                     = '',
-  $manage_requirements                = true,
-  $fix_requirements_owner             = true,
-  $log_dir                            = '/tmp',
-  $timeout                            = 1800,
+  String[1]                                    $requirements           = $name,
+  Variant[Enum['system'],Stdlib::Absolutepath] $virtualenv             = 'system',
+  Enum['pip', 'pip3']                          $pip_provider           = 'pip',
+  String[1]                                    $owner                  = 'root',
+  String[1]                                    $group                  = 'root',
+  Optional[Stdlib::HTTPUrl]                    $proxy                  = undef,
+  Any                                          $src                    = false,
+  Array                                        $environment            = [],
+  Boolean                                      $forceupdate            = false,
+  Stdlib::Absolutepath                         $cwd                    = undef,
+  String                                       $extra_pip_args         = '',
+  Boolean                                      $manage_requirements    = true,
+  Boolean                                      $fix_requirements_owner = true,
+  Stdlib::Absolutepath                         $log_dir                = '/tmp',
+  Integer                                      $timeout                = 1800,
 ) {
   include python
 
